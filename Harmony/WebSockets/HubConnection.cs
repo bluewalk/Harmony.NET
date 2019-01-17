@@ -38,19 +38,14 @@ namespace Harmony.WebSockets {
 		public HubConnection(DeviceID messageID) => this.MessageID = messageID;
 
 		/// <summary>
-		///     Event raised when a message has been received on the WebSocket
-		/// </summary>
-		public event EventHandler<StringResponseEventArgs> OnMessageReceived;
-
-		/// <summary>
 		///     Connects to the WebSocket
 		/// </summary>
 		/// <param name="hostname">The hostname of the Hub, without a port</param>
 		/// <param name="hubRemoteId">The RemoteId of the Hub</param>
 		/// <returns>When the WebSocket has connected</returns>
-		public Task Connect(string hostname, string hubRemoteId) {
+		public void Connect(string hostname, string hubRemoteId) {
 			string FullUrl = $"ws://{hostname}:8088/?domain=svcs.myharmony.com&hubId={hubRemoteId}";
-			return base.Connect(FullUrl);
+			base.Connect(FullUrl);
 		}
 
 		/// <summary>
@@ -77,30 +72,6 @@ namespace Harmony.WebSockets {
 		public Task<string> SendCommand(string commandName, CommandParams parameters) {
 			Command Command = new Command(commandName, parameters, this.MessageID.Next());
 			return this.SendCommand(Command);
-		}
-
-		/// <summary>
-		///     Handles listening on the websocket connection
-		/// </summary>
-		[SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1107:CodeMustNotContainMultipleStatementsOnOneLine", Justification = "when is just completely mishandled by StyleCop")]
-		public override async void StartListening() {
-			try {
-				// main listening loop
-				while (!this.IsDisposed && !this.WebSocket.CloseStatus.HasValue) {
-					StringResponse Message = await this.ReceiveHarmonyMessage();
-
-					// pass message on
-					this.OnMessageReceived?.Invoke(this, new StringResponseEventArgs(Message));
-				}
-			} catch (Exception e) 
-				when (e is InvalidOperationException || e is WebSocketException || e is HarmonyException) {
-				// often other parties fail to close websockets correctly,
-				// but avoid throwing an exception if that happens
-				// instead, try to reconnect
-				if (this.IsDisposed) return;
-
-				// TODO reconnect
-			}	
 		}
 
 		/// <summary>

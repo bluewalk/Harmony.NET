@@ -170,21 +170,18 @@ namespace Harmony {
 		/// </summary>
 		/// <param name="deviceID">A unique identifier for the device connecting</param>
 		/// <returns>When the WebSocket has connected</returns>
-		public async Task ConnectAsync(DeviceID deviceID) {
+		public void ConnectAsync(DeviceID deviceID) {
 			this.Connection = new HubConnection(deviceID);
 			this.Connection.OnMessageReceived += this.OnHarmonyMessageReceived;
-			await this.Connection.Connect(this.Info.IP, this.Info.RemoteId);
+			this.Connection.Connect(this.Info.IP, this.Info.RemoteId);
 			this.ConnectedAt = DateTime.Now;
-
-			// start listening for messages
-			this.Connection.StartListening();
 		}
 
 		/// <summary>
 		///     Disconnects from the Hub asynchronously
 		/// </summary>
 		/// <returns>When the WebSocket has disconnected</returns>
-		public Task Disconnect() => this.Connection.Disconnect();
+		public void Disconnect() => this.Connection.Disconnect();
 
 		/// <inheritdoc />
 		/// <summary>
